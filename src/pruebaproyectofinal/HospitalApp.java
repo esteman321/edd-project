@@ -25,7 +25,7 @@ public class HospitalApp {
             System.out.println("========================================");
             System.out.println("1. Consultar Ruta General (Origen -> Destino)");
             System.out.println("2. ¿A Donde voy? (Desde Recepcion -> Destino)");
-            System.out.println("3. Reportar OBSTACULO (Aumenta tiempo)"); //algunos eventos pa lo q pide la profe
+            System.out.println("3. Reportar AGLOMERACION (Aumenta tiempo)"); //algunos eventos pa lo q pide la profe
             System.out.println("4. Reportar EMERGENCIA (Disminuye tiempo)");
             System.out.println("5. Salir");
             System.out.print(">> Seleccione opción: ");
@@ -54,7 +54,7 @@ public class HospitalApp {
                     hospital.imprimirRuta("Informacion", destinoR);
                     break;
 
-                case 3: // Obstáculo
+                case 3: // Aglomeracion
                     System.out.println("[REPORTAR OBSTACULO]");
                     System.out.print("Lugar A: ");
                     String obsA = scanner.nextLine();
@@ -113,65 +113,79 @@ class DatosHospital {
         //Formato: origen, destino, peso
         
         g.agregarArista("Entrada Principal", "Pasillo 1", 10);
-        g.agregarArista("Pasillo 1", "Informacion", 5);
+        g.agregarArista("Pasillo 1", "Informacion", 15);
         g.agregarArista("Pasillo 1", "Farmacia", 8);
         g.agregarArista("Pasillo 1", "Auditorio", 8);
-        g.agregarArista("Pasillo 1", "Pasillo 3", 15);
+        g.agregarArista("Pasillo 1", "Pasillo 2", 21);
+        g.agregarArista("Pasillo 1", "Pasillo 3", 21);
         
-        g.agregarArista("Pasillo 3", "Consultorio 12", 5);
-        g.agregarArista("Pasillo 3", "Sala de Espera", 8);
+        g.agregarArista("Pasillo 3", "Consultorio 12", 7);
+        g.agregarArista("Pasillo 3", "Sala de Espera", 9);
         g.agregarArista("Sala de Espera", "Informacion", 5);
-        g.agregarArista("Pasillo 3", "Pasillo 2", 12);
-        g.agregarArista("Pasillo 3", "SubPasillo 3", 20);
-
-        g.agregarArista("Pasillo 2", "Imagenologia", 8);
-        g.agregarArista("Pasillo 2", "Urgencias", 8);
-        g.agregarArista("Pasillo 2", "SubPasillo 1", 10);
+        g.agregarArista("Pasillo 3", "SubPasillo 2", 9);
+        g.agregarArista("Pasillo 3", "Pasillo 4", 10);
         
-        g.agregarArista("SubPasillo 1", "Emergencias Ped.", 5);
-        g.agregarArista("SubPasillo 1", "Sala Emergencias", 5);
-        g.agregarArista("Sala Emergencias", "Enfermeria 1", 5);
+        g.agregarArista("Pasillo 2", "Imagenologia", 10);
+        g.agregarArista("Pasillo 2", "Consultorio 11", 12);
+        g.agregarArista("Pasillo 2", "Anatomia Patologica", 12);
+        g.agregarArista("Pasillo 2", "SubPasillo 1", 6);
+        g.agregarArista("Pasillo 2", "SubPasillo 3", 10);
+        
+        g.agregarArista("SubPasillo 1", "Emergencias Ped.", 4);
+        g.agregarArista("SubPasillo 1", "Sala Emergencias", 6);
+        g.agregarArista("SubPasillo 1", "Enfermeria 1", 9);
+        g.agregarArista("Sala Emergencias", "Enfermeria 1", 2);
+        g.agregarArista("SubPasillo 1", "Urgencias", 8);
+        g.agregarArista("Urgencias", "Imagenologia", 3);
 
-        g.agregarArista("SubPasillo 3", "Almacen", 5);
+        g.agregarArista("SubPasillo 3", "Almacen", 7);
         g.agregarArista("SubPasillo 3", "Salas Descanso", 8);
-        g.agregarArista("SubPasillo 3", "Anatomia Patologica", 8);
-        g.agregarArista("Anatomia Patologica", "Consultorio 11", 5);
+        g.agregarArista("SubPasillo 3", "Vestidor M", 8);
+        g.agregarArista("SubPasillo 3", "Vestidor H", 9);
+        g.agregarArista("Vestidor H", "Lavanderia", 3);
+        g.agregarArista("Vestidor M", "Lavanderia", 3);
+        g.agregarArista("SubPasillo 3", "Lavanderia", 10);
+        g.agregarArista("SubPasillo 3", "Estacion Servicio Cocina", 9);
+        g.agregarArista("Estacion Servicio Cocina", "Cocina", 4);
+        g.agregarArista("Cocina", "Comedor", 3);
+        g.agregarArista("SubPasillo 3", "Comedor", 8);
         
-        g.agregarArista("SubPasillo 3", "Vestidor M", 5);
-        g.agregarArista("SubPasillo 3", "Vestidor H", 5);
-        g.agregarArista("Vestidor H", "Lavanderia", 5);
-        
-        g.agregarArista("SubPasillo 3", "Estacion Servicio Cocina", 10);
-        g.agregarArista("Estacion Servicio Cocina", "Cocina", 5);
-        g.agregarArista("Cocina", "Comedor", 5);
-        g.agregarArista("Comedor", "Pasillo 4", 8);
 
-        g.agregarArista("Pasillo 4", "SubPasillo 3", 15);
+        g.agregarArista("Pasillo 4", "SubPasillo 3", 6);
         g.agregarArista("Pasillo 4", "Banos", 5);
-        g.agregarArista("Pasillo 4", "SubPasillo 4", 12);
+        g.agregarArista("Pasillo 4", "SubPasillo 4", 6);
+        g.agregarArista("Pasillo 4", "Comedor", 5);
+        g.agregarArista("Pasillo 4", "PYP", 5);
+        g.agregarArista("PYP", "Enfermeria 2", 3);
         
-        g.agregarArista("Pasillo 4", "PYP", 8);
-        g.agregarArista("PYP", "Enfermeria 2", 5);
-        g.agregarArista("Enfermeria 2", "SubPasillo 4", 5);
+        g.agregarArista("Enfermeria 2", "SubPasillo 4", 4);
+        
+        g.agregarArista("Pasillo 4", "Consulta Externa", 9);
+        g.agregarArista("Pasillo 4", "Trabajo Social", 7);
+        g.agregarArista("Trabajo Social", "Consultorio 8", 3);
+        g.agregarArista("Consultorio 8", "SubPasillo 2", 5);
+        
+        
+        g.agregarArista("SubPasillo 4", "Consultorio 5", 8);
+        g.agregarArista("SubPasillo 4", "Consultorio 4", 7);
+        g.agregarArista("SubPasillo 4", "Consultorio 3", 7);
+        g.agregarArista("SubPasillo 4", "Consultorio 2", 7);
+        g.agregarArista("SubPasillo 4", "Consultorio 1", 8);
+        g.agregarArista("Consultorio 1", "Consultorio 2", 2);
+        g.agregarArista("Consultorio 2", "Consultorio 3", 2);
+        g.agregarArista("Consultorio 3", "Consultorio 4", 2);
+        g.agregarArista("Consultorio 4", "Consultorio 5", 2);
+        g.agregarArista("SubPasillo 4", "Cocina", 6);
+        g.agregarArista("SubPasillo 4", "Laboratorio", 6);
+        g.agregarArista("Laboratorio", "Consulta Externa", 4);
+        g.agregarArista("Consulta Externa", "Consultorio 8", 7);
 
-        g.agregarArista("SubPasillo 4", "Consultorio 5", 5);
-        g.agregarArista("SubPasillo 4", "Consultorio 4", 5);
-        g.agregarArista("SubPasillo 4", "Consultorio 3", 5);
-        g.agregarArista("SubPasillo 4", "Consultorio 2", 5);
-        g.agregarArista("Consultorio 2", "Consultorio 1", 5);
         
-        g.agregarArista("SubPasillo 4", "Laboratorio", 8);
-        g.agregarArista("Laboratorio", "Consulta Externa", 5);
-
-        g.agregarArista("Pasillo 4", "Trabajo Social", 10);
-        g.agregarArista("Trabajo Social", "Consultorio 8", 5);
-        g.agregarArista("Consultorio 8", "SubPasillo 2", 8);
         
-        g.agregarArista("SubPasillo 2", "Consultorio 7", 5);
-        g.agregarArista("SubPasillo 2", "Consultorio 9", 5);
+        g.agregarArista("SubPasillo 2", "Consultorio 7", 4);
+        g.agregarArista("SubPasillo 2", "Consultorio 9", 4);
         g.agregarArista("SubPasillo 2", "Consultorio 10", 5);
 
-        g.agregarArista("Pasillo 4", "Pasillo 3", 10);
 
         System.out.println(">> Datos cargados: " + lugares.length + " lugares conectados.");
     }
