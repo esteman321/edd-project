@@ -1,5 +1,7 @@
 package pruebaproyectofinal;
 
+import java.util.ArrayList; //nuevas importanciones
+import java.util.Random;
 import java.util.Scanner;
 
 public class HospitalApp {
@@ -88,6 +90,7 @@ public class HospitalApp {
 class DatosHospital {
     public static void cargarMapa(GrafoHospital g) {
         //lugares
+        g.limpiar();
         String[] lugares = {
             "Entrada Principal", "Pasillo 1", "Informacion", "Farmacia", "Auditorio", 
             "Sala de Espera",
@@ -197,21 +200,27 @@ class GrafoHospital {
     private int[][] siguientes;    //matriz para reconstruir camino
     private int numVertices;
     private final int MAX_V = 45;  //capacidad máxima fija para validar
-
+    private int[][] matrizAdyacenciaOriginal; //por a
+    private Random random; //por a
     public GrafoHospital() {
         nombresNodos = new String[MAX_V];
         distancias = new int[MAX_V][MAX_V];
         siguientes = new int[MAX_V][MAX_V];
         numVertices = 0;
-
+        matrizAdyacenciaOriginal = new int [MAX_V][MAX_V];
+        
+        //añadidio a
+        random = new Random();
         // Inicializar matrices
         for (int i = 0; i < MAX_V; i++) {
             for (int j = 0; j < MAX_V; j++) {
                 if (i == j) {
                     distancias[i][j] = 0;
+                    matrizAdyacenciaOriginal[i][j] = 0; //por a
                 }
                 else {
                     distancias[i][j] = HospitalApp.INF;
+                    matrizAdyacenciaOriginal[i][j] = HospitalApp.INF; //por a
                 }
                 
                 siguientes[i][j] = -1; 
@@ -250,6 +259,8 @@ class GrafoHospital {
             distancias[j][i] = peso;
             siguientes[i][j] = j;
             siguientes[j][i] = i;
+            matrizAdyacenciaOriginal[i][j] = peso; //por a
+            matrizAdyacenciaOriginal[j][i] = peso; //por a
         } else {
             System.out.println("Advertencia: No se pudo conectar " + u + " con " + v + " (Nombre incorrecto)");
         }
@@ -273,8 +284,63 @@ class GrafoHospital {
             }
         }
     }
+    //nuevo metodo de actualizacion
+    public ArrayList<String> simularBloqueoSalas(int cantidad) {
+        // 1. Resetear el grafo al estado original
+        DatosHospital.cargarMapa(this);
+        
+        ArrayList<String> nodosBloqueados = new ArrayList<>();
+        String[] nombres = getNombresNodos(); 
+        
+        //bloquea salas aleatorias
+        for (int i = 0; i < cantidad; i++) {
+            String nodoABloquear = nombres[random.nextInt(nombres.length)];
+            nodosBloqueados.add(nodoABloquear);
+            int idx = buscarIndice(nodoABloquear);
+            
+            // bloquea todas las conexiones con la sala
+            for (int j = 0; j < numVertices; j++) {
+                if (idx != j && matrizAdyacenciaOriginal[idx][j] != HospitalApp.INF) {
+                    // modifica la matriz del grafi original
+                    matrizAdyacenciaOriginal[idx][j] = HospitalApp.INF;
+                    matrizAdyacenciaOriginal[j][idx] = HospitalApp.INF;
+                }
+            }
+        }
+        
+        // recalculo algoritmo
+        resetearMatricesParaFloyd(); 
+        ejecutarFloydWarshall();     
+        
+        return nodosBloqueados;
+    }
+    
+    
+    public void simularPesosAleatorios(int maxPeso) {
+        // resetea al grafo original
+        DatosHospital.cargarMapa(this);
+        
+        String[] nombres = getNombresNodos();
+
+
+        for (int i = 0; i < numVertices; i++) {
+            for (int j = i + 1; j < numVertices; j++) {
+                // Si la arista existía
+                if (matrizAdyacenciaOriginal[i][j] != 0 && matrizAdyacenciaOriginal[i][j] != HospitalApp.INF) {
+                    int nuevoPeso = random.nextInt(maxPeso) + 1; // aplica un peso aleatorio entre max
+                    matrizAdyacenciaOriginal[i][j] = nuevoPeso;
+                    matrizAdyacenciaOriginal[j][i] = nuevoPeso;
+                }
+            }
+        }
+        
+        // 3. Recalcular F-W una sola vez
+        resetearMatricesParaFloyd(); // Reinicia
+        ejecutarFloydWarshall();     // Calcula
+    }
 
     public void actualizarPeso(String u, String v, double factor) {
+        /**
         int i = buscarIndice(u);
         int j = buscarIndice(v);
 
@@ -302,8 +368,132 @@ class GrafoHospital {
         System.out.println(">> Recalculando todas las rutas...");
         
         ejecutarFloydWarshall(); //se recalcula con floyd warshallll gracias por tanto perdon por poco
+        **/
+        //cambio porque cuando hay una emergencia toca recalcular con la matriz de la emergencia y no la anterior
+        
+        int i = buscarIndice(u);
+        int j = buscarIndice(v);
+
+        if (i == -1 || j == -1) {
+            System.out.println("Error: Lugar no encontrado.");
+            return;
+        }
+
+        //usa la maatriz original para ver si hay conexion entres esos puntos
+        if (matrizAdyacenciaOriginal[i][j] == HospitalApp.INF) {
+            System.out.println("No hay conexión directa física entre estos puntos.");
+            return;
+        }
+
+        // se calcula el nuevo peso
+        int nuevoPeso;
+        if (factor >= HospitalApp.INF) { // Para bloqueos (factor = INF)
+            nuevoPeso = HospitalApp.INF;
+        } else {
+            nuevoPeso = (int) (matrizAdyacenciaOriginal[i][j] * factor); //mira la matriz original
+        }
+
+        if (nuevoPeso <= 0 && nuevoPeso != HospitalApp.INF){
+             nuevoPeso = 1; // El peso mínimo es 1
+        }
+
+        // modifica la matriz de adyacencia original
+        matrizAdyacenciaOriginal[i][j] = nuevoPeso;
+        matrizAdyacenciaOriginal[j][i] = nuevoPeso;
+        
+        System.out.println(">> Peso (Original) actualizado: " + u + " <-> " + v + " = " + nuevoPeso + " seg.");
+        System.out.println(">> Recalculando todas las rutas...");
+
+        // reinicia la matriz para resetear siguientes
+        resetearMatricesParaFloyd(); 
+
+        // 3. recalcula floyd warshall
+        ejecutarFloydWarshall();
+    
+    }
+    public String[] getNombresNodos() {
+        //devuelve una copia de los nombres de los nodos
+        String[] copia = new String[numVertices];
+        System.arraycopy(nombresNodos, 0, copia, 0, numVertices);
+        return copia;
+    }
+    public int getNumVertices() {
+        return numVertices;
+    }
+    public int[][] getMatrizAdyacenciaOriginal() {
+        return matrizAdyacenciaOriginal;
+    }
+    public int getINF() {
+        return HospitalApp.INF;
     }
 
+    public int[][] getDistancias() {
+        return distancias;
+    }
+    
+    
+    public RutaInfo obtenerRuta(String origen, String destino) {
+        int u = buscarIndice(origen);
+        int v = buscarIndice(destino);
+        ArrayList<String> nodosRuta = new ArrayList<>();
+
+        if (u == -1 || v == -1) {
+            return new RutaInfo(0, nodosRuta, false); // No existe
+        }
+
+        if (distancias[u][v] == HospitalApp.INF) {
+            return new RutaInfo(0, nodosRuta, false); // No hay camino
+        }
+
+        // si existe el camnio, se recalcula la ruta
+        int actual = u;
+        while (actual != v) {
+            nodosRuta.add(nombresNodos[actual]);
+            actual = siguientes[actual][v];
+            if (actual == -1) {
+                // sale en un error
+                return new RutaInfo(0, new ArrayList<>(), false);
+            }
+        }
+        nodosRuta.add(nombresNodos[v]); // Añadir el destino
+
+        return new RutaInfo(distancias[u][v], nodosRuta, true);
+    }
+    
+    private void resetearMatricesParaFloyd() {
+        for (int i = 0; i < numVertices; i++) {
+            for (int j = 0; j < numVertices; j++) {
+                distancias[i][j] = matrizAdyacenciaOriginal[i][j]; //copia el peso del grafo orginal
+
+                // reconstruye la matriz
+                if (i == j) {
+                    distancias[i][j] = 0;
+                    siguientes[i][j] = -1; 
+                } else if (distancias[i][j] != HospitalApp.INF) {
+                    siguientes[i][j] = j; // siguiente nodo es el directo
+                } else {
+                    siguientes[i][j] = -1; // si no hay ruta directa, sale eso
+                }
+            }
+        }
+    }
+    //toca limpiar el grafo :( para poder recalcular con el mecanismo de actualizacion
+    public void limpiar() {
+        numVertices = 0;
+        // inicializa las matrices
+        for (int i = 0; i < MAX_V; i++) {
+            for (int j = 0; j < MAX_V; j++) {
+                if (i == j) {
+                    distancias[i][j] = 0;
+                    matrizAdyacenciaOriginal[i][j] = 0;
+                } else {
+                    distancias[i][j] = HospitalApp.INF;
+                    matrizAdyacenciaOriginal[i][j] = HospitalApp.INF;
+                }
+                siguientes[i][j] = -1;
+            }
+        }
+    }
     public void imprimirRuta(String origen, String destino) {
         int u = buscarIndice(origen);
         int v = buscarIndice(destino);
@@ -332,5 +522,24 @@ class GrafoHospital {
             System.out.print(" -> " + nombresNodos[actual]);
         }
         System.out.println("\n");
+        
+        RutaInfo ruta = obtenerRuta(origen, destino);
+
+    if (!ruta.existe) {
+        System.out.println("Error: Uno de los lugares no existe o no hay ruta.");
+        return;
+    }
+
+    System.out.println("Ruta encontrada");
+    System.out.println("Tiempo estimado: " + ruta.distanciaTotal + " segundos.");
+    System.out.print("Recorrido: ");
+    
+    for (int i = 0; i < ruta.nodos.size(); i++) {
+        System.out.print(ruta.nodos.get(i));
+        if (i < ruta.nodos.size() - 1) {
+            System.out.print(" -> ");
+        }
+    }
+    System.out.println("\n");
     }
 }
