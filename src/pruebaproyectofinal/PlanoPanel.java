@@ -28,7 +28,7 @@ public class PlanoPanel extends JPanel{
         
         try {
             // se carga la imagen del plano del hospital
-            planoImagen = ImageIO.read(new File("plano_hospital.png"));
+            planoImagen = ImageIO.read(new File("plano proyecto final act.jpeg"));
         } catch (IOException e) {
             System.err.println("Error no hay imagen" + e.getMessage());
             planoImagen = null;
