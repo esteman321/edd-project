@@ -53,7 +53,7 @@ public class HospitalApp {
                     System.out.print("Ingrese Destino (Ej. Laboratorio): ");
                     String destinoR = scanner.nextLine();
                     //se parte desde info.
-                    hospital.imprimirRuta("Informacion", destinoR);
+                    hospital.imprimirRuta("Recepcion", destinoR);
                     break;
 
                 case 3: // Aglomeracion
@@ -92,7 +92,7 @@ class DatosHospital {
         //lugares
         g.limpiar();
         String[] lugares = {
-            "Entrada Principal", "Pasillo 1", "Informacion", "Farmacia", "Auditorio", 
+            "Entrada Principal", "Pasillo 1", "Recepcion", "Farmacia", "Auditorio", 
             "Sala de Espera",
             "Pasillo 3", "Consultorio 12", "Pasillo 2", "Pasillo 4",
             "Imagenologia", "Urgencias", "SubPasillo 1", 
@@ -116,7 +116,7 @@ class DatosHospital {
         //Formato: origen, destino, peso
         
         g.agregarArista("Entrada Principal", "Pasillo 1", 10);
-        g.agregarArista("Pasillo 1", "Informacion", 15);
+        g.agregarArista("Pasillo 1", "Recepcion", 15);
         g.agregarArista("Pasillo 1", "Farmacia", 8);
         g.agregarArista("Pasillo 1", "Auditorio", 8);
         g.agregarArista("Pasillo 1", "Pasillo 2", 21);
@@ -124,7 +124,7 @@ class DatosHospital {
         
         g.agregarArista("Pasillo 3", "Consultorio 12", 7);
         g.agregarArista("Pasillo 3", "Sala de Espera", 9);
-        g.agregarArista("Sala de Espera", "Informacion", 5);
+        g.agregarArista("Sala de Espera", "Recepcion", 5);
         g.agregarArista("Pasillo 3", "SubPasillo 2", 9);
         g.agregarArista("Pasillo 3", "Pasillo 4", 10);
         
@@ -196,12 +196,12 @@ class DatosHospital {
 
 class GrafoHospital {
     private String[] nombresNodos; //arreglo simple de nombres
-    private int[][] distancias;    //matriz de pesos
-    private int[][] siguientes;    //matriz para reconstruir camino
+    private int[][] distancias;    //matriz de pesos que usa floyd warchall, guarda los peso de la ruta mas corta total
+    private int[][] siguientes;    //matriz para reconstruir camino, con los caminos, hecho con nodos
     private int numVertices;
     private final int MAX_V = 45;  //capacidad máxima fija para validar
-    private int[][] matrizAdyacenciaOriginal; //por a
-    private Random random; //por a
+    private int[][] matrizAdyacenciaOriginal; //es el mapa base, guarda los pesos directos entre lugares
+    private Random random; //para el mecanismo de hora loca
     public GrafoHospital() {
         nombresNodos = new String[MAX_V];
         distancias = new int[MAX_V][MAX_V];
@@ -259,8 +259,8 @@ class GrafoHospital {
             distancias[j][i] = peso;
             siguientes[i][j] = j;
             siguientes[j][i] = i;
-            matrizAdyacenciaOriginal[i][j] = peso; //por a
-            matrizAdyacenciaOriginal[j][i] = peso; //por a
+            matrizAdyacenciaOriginal[i][j] = peso; //se guarda en la copia
+            matrizAdyacenciaOriginal[j][i] = peso; //se guarda en al copia
         } else {
             System.out.println("Advertencia: No se pudo conectar " + u + " con " + v + " (Nombre incorrecto)");
         }
@@ -284,7 +284,8 @@ class GrafoHospital {
             }
         }
     }
-    //nuevo metodo de actualizacion
+    //nuevo metodo de actualizacion, cuando hay una emergencia o mecanismo de actualizacion el programa necesita recalcuklar rutas
+    
     public ArrayList<String> simularBloqueoSalas(int cantidad) {
         // 1. Resetear el grafo al estado original
         DatosHospital.cargarMapa(this);
@@ -338,7 +339,10 @@ class GrafoHospital {
         resetearMatricesParaFloyd(); // Reinicia
         ejecutarFloydWarshall();     // Calcula
     }
-
+    //cuando llamo a actualizar peso, no se cambia la matriz de distancias sino la matriz de adyacencia original
+    //entonces llama a resetar matrices y este metodo borra la matriz distancias vieja y la rremplaza con la
+    //matriz con el peso nuevo de la aglomeracion(matriz de adyacencia original)
+    //y ahroa si llama a floyd warshall con la nueva matriz con los pesos afectados por el mecanismo de actualizacion
     public void actualizarPeso(String u, String v, double factor) {
         /**
         int i = buscarIndice(u);
@@ -379,7 +383,7 @@ class GrafoHospital {
             return;
         }
 
-        //usa la maatriz original para ver si hay conexion entres esos puntos
+        //usa la maatriz original para ver si hay conexion entres esos puntos, verifica si el camnio existe en el mapa orginal
         if (matrizAdyacenciaOriginal[i][j] == HospitalApp.INF) {
             System.out.println("No hay conexión directa física entre estos puntos.");
             return;
@@ -390,11 +394,12 @@ class GrafoHospital {
         if (factor >= HospitalApp.INF) { // Para bloqueos (factor = INF)
             nuevoPeso = HospitalApp.INF;
         } else {
+            //saca el peso del mapa original y lo multiplica
             nuevoPeso = (int) (matrizAdyacenciaOriginal[i][j] * factor); //mira la matriz original
         }
 
         if (nuevoPeso <= 0 && nuevoPeso != HospitalApp.INF){
-             nuevoPeso = 1; // El peso mínimo es 1
+             nuevoPeso = 1; //peso minimo actualizado es 1
         }
 
         // modifica la matriz de adyacencia original
@@ -404,15 +409,15 @@ class GrafoHospital {
         System.out.println(">> Peso (Original) actualizado: " + u + " <-> " + v + " = " + nuevoPeso + " seg.");
         System.out.println(">> Recalculando todas las rutas...");
 
-        // reinicia la matriz para resetear siguientes
+        // reinicia la matriz de distancias porque ya no usamos el grafo anteiror
         resetearMatricesParaFloyd(); 
 
-        // 3. recalcula floyd warshall
+        // 3. recalcula floyd warshall con el nuevo grafo
         ejecutarFloydWarshall();
     
     }
     public String[] getNombresNodos() {
-        //devuelve una copia de los nombres de los nodos
+        //devuelve una copia de los nombres de los nodos para la interfaz
         String[] copia = new String[numVertices];
         System.arraycopy(nombresNodos, 0, copia, 0, numVertices);
         return copia;
@@ -420,7 +425,7 @@ class GrafoHospital {
     public int getNumVertices() {
         return numVertices;
     }
-    public int[][] getMatrizAdyacenciaOriginal() {
+    public int[][] getMatrizAdyacenciaOriginal() { //devuelve la matriz original para la interfaz
         return matrizAdyacenciaOriginal;
     }
     public int getINF() {
@@ -431,7 +436,7 @@ class GrafoHospital {
         return distancias;
     }
     
-    
+    //devuelve la ruta mas corta creada para la interfaz
     public RutaInfo obtenerRuta(String origen, String destino) {
         int u = buscarIndice(origen);
         int v = buscarIndice(destino);
@@ -460,12 +465,14 @@ class GrafoHospital {
         return new RutaInfo(distancias[u][v], nodosRuta, true);
     }
     
+    //se usa para borrar los datos antiguos de la matriz distancias y copia los nuevos calculos hechos en matriz adyacencia original
+    //a distancias, y reinicia la matriz de siguientes
     private void resetearMatricesParaFloyd() {
         for (int i = 0; i < numVertices; i++) {
             for (int j = 0; j < numVertices; j++) {
                 distancias[i][j] = matrizAdyacenciaOriginal[i][j]; //copia el peso del grafo orginal
 
-                // reconstruye la matriz
+                // reconstruye la matriz siguientes
                 if (i == j) {
                     distancias[i][j] = 0;
                     siguientes[i][j] = -1; 
@@ -494,6 +501,8 @@ class GrafoHospital {
             }
         }
     }
+    
+    // para la terminal
     public void imprimirRuta(String origen, String destino) {
         int u = buscarIndice(origen);
         int v = buscarIndice(destino);
