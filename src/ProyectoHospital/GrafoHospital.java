@@ -98,37 +98,7 @@ public class GrafoHospital {
             }
         }
     }
-    //nuevo metodo de actualizacion, cuando hay una emergencia o mecanismo de actualizacion el programa necesita recalcuklar rutas
-    
-    public ArrayList<String> simularBloqueoSalas(int cantidad) {
-        // 1. Resetear el grafo al estado original
-        DatosHospital.cargarMapa(this);
-        
-        ArrayList<String> nodosBloqueados = new ArrayList<>();
-        String[] nombres = getNombresNodos(); 
-        
-        //bloquea salas aleatorias
-        for (int i = 0; i < cantidad; i++) {
-            String nodoABloquear = nombres[random.nextInt(nombres.length)];
-            nodosBloqueados.add(nodoABloquear);
-            int idx = buscarIndice(nodoABloquear);
-            
-            // bloquea todas las conexiones con la sala
-            for (int j = 0; j < numVertices; j++) {
-                if (idx != j && matrizPesosOriginal[idx][j] != HospitalApp.INF) {
-                    // modifica la matriz del grafi original
-                    matrizPesosOriginal[idx][j] = HospitalApp.INF;
-                    matrizPesosOriginal[j][idx] = HospitalApp.INF;
-                }
-            }
-        }
-        
-        // recalculo algoritmo
-        resetearMatricesParaFloyd(); 
-        ejecutarFloydWarshall();     
-        
-        return nodosBloqueados;
-    }
+   
     
     
     public void simularPesosAleatorios(int maxPeso) {
@@ -150,10 +120,10 @@ public class GrafoHospital {
         }
         
         // 3. Recalcular F-W una sola vez
-        resetearMatricesParaFloyd(); // Reinicia
-        ejecutarFloydWarshall();     // Calcula
+        resetearMatricesParaFloyd(); 
+        ejecutarFloydWarshall();     // calcula
     }
-    //cuando llamo a actualizar peso, no se cambia la matriz de distancias sino la matriz de adyacencia original
+    //cuando llamo a actualizar peso, no se cambia la matriz de distancias sino la matriz de pesos
     //entonces llama a resetar matrices y este metodo borra la matriz distancias vieja y la rremplaza con la
     //matriz con el peso nuevo de la aglomeracion(matriz de adyacencia original)
     //y ahroa si llama a floyd warshall con la nueva matriz con los pesos afectados por el mecanismo de actualizacion
@@ -187,47 +157,104 @@ public class GrafoHospital {
         
         ejecutarFloydWarshall(); //se recalcula con floyd warshallll gracias por tanto perdon por poco
         **/
-        //cambio porque cuando hay una emergencia toca recalcular con la matriz de la emergencia y no la anterior
-        
+        //cambio 
+
         int i = buscarIndice(u);
         int j = buscarIndice(v);
 
         if (i == -1 || j == -1) {
-            System.out.println("Error: Lugar no encontrado.");
+            System.out.println("Error: Lugar no encontrado");
             return;
         }
-
-        //usa la matriz original para ver si hay conexion entres esos puntos, verifica si el camnio existe en el mapa orginal
-        if (matrizPesosOriginal[i][j] == HospitalApp.INF) {
-            System.out.println("No hay conexión directa física entre estos puntos.");
-            return;
-        }
-
-        // se calcula el nuevo peso
-        int nuevoPeso;
-        if (factor >= HospitalApp.INF) { // Para bloqueos (factor = INF)
-            nuevoPeso = HospitalApp.INF;
-        } else {
-            //saca el peso del mapa original y lo multiplica
-            nuevoPeso = (int) (matrizPesosOriginal[i][j] * factor); //mira la matriz original
-        }
-
-        if (nuevoPeso <= 0 && nuevoPeso != HospitalApp.INF){
-             nuevoPeso = 1; //peso minimo actualizado es 1
-        }
-
-        // modifica la matriz de adyacencia original
-        matrizPesosOriginal[i][j] = nuevoPeso;
-        matrizPesosOriginal[j][i] = nuevoPeso;
         
-        System.out.println(">> Peso (Original) actualizado: " + u + " <-> " + v + " = " + nuevoPeso + " seg.");
-        System.out.println(">> Recalculando todas las rutas...");
+        if (i == j) {
+             System.out.println("El origen y el destino son el mismo");
+             return;
+        }
 
-        // reinicia la matriz de distancias porque ya no usamos el grafo anteiror
-        resetearMatricesParaFloyd(); 
+        // 1. revisar si hay un camino (con la matriz de distancias de floyd)
+        if (distancias[i][j] == HospitalApp.INF) {
+            // si algo, solo se aplica a la arista
+            System.out.println("No hay ruta completa calculada entre " + u + " y " + v + ".");
+            
+            // revisamos si de verdad hay una arista directa en el mapa original
+            if (matrizPesosOriginal[i][j] == HospitalApp.INF || matrizPesosOriginal[i][j] == 0) {
+                 System.out.println("Tampoco hay conexión directa");
+                 return;
+            }
+            
+            System.out.println("Aplicando mecanismo " + factor + " solo a la arista directa: " + u + "" + v);
+            
+            // calcular el nuevo peso para esa arista directa
+            int nuevoPeso;
+            if (factor >= HospitalApp.INF) {
+                nuevoPeso = HospitalApp.INF;
+            } else {
+                nuevoPeso = (int) (matrizPesosOriginal[i][j] * factor);
+            }
 
-        // 3. recalcula floyd warshall con el nuevo grafo
+            if (nuevoPeso <= 0 && nuevoPeso != HospitalApp.INF){
+                 nuevoPeso = 1; // el peso minimo es 1
+            }
+
+            // modificar la matriz de pesos original (la de adyacencia)
+            matrizPesosOriginal[i][j] = nuevoPeso;
+            matrizPesosOriginal[j][i] = nuevoPeso;
+            
+            System.out.println("  -> Arista " + u + " <-> " + v + " actualizada a " + nuevoPeso);
+
+        } else {
+            // si hay ruta, le aplicamos eso a tdos las asristas de esa ruta
+            System.out.println("Aplicando mecanismo" + factor + " al camino: " + u + "  " + v);
+            ArrayList<Integer> rutaIndices = new ArrayList<>();
+            int actual = i;
+            while (actual != j) {
+                rutaIndices.add(actual);
+                int salto = siguientes[actual][j]; // sacamos el proximo salto
+                if (salto == -1) {
+                     System.out.println("Error al reconstruir la ruta");
+                     return;
+                }
+                actual = salto;
+            }
+            rutaIndices.add(j); // añade el destino al final
+            // recorre lo que se hizo y modificar la matriz original
+            for (int k = 0; k < rutaIndices.size() - 1; k++) {
+                int nodoa = rutaIndices.get(k);
+                int nodob = rutaIndices.get(k + 1);
+                String nombreA = nombresNodos[nodoa];
+                String nombreB = nombresNodos[nodob];
+
+                // camino hecho de aristas
+                if (matrizPesosOriginal[nodoa][nodob] == HospitalApp.INF || matrizPesosOriginal[nodoa][nodob] == 0) {
+                     System.out.println(" El segmento " + nombreA + " y" + nombreB + " no existe en la matriz original");
+                     continue;
+                }
+                
+                // nuevo peso
+                int nuevoPeso;
+                if (factor >= HospitalApp.INF) {
+                    nuevoPeso = HospitalApp.INF;
+          } else {
+                    //saca el peso del mapa original y lo multiplica
+                    nuevoPeso = (int) (matrizPesosOriginal[nodoa][nodob] * factor);
+                }
+                
+                if (nuevoPeso <= 0 && nuevoPeso != HospitalApp.INF){
+                  nuevoPeso = 1; //peso minimo
+             }
+
+                // modificar la matriz de pesos original
+                matrizPesosOriginal[nodoa][nodob] = nuevoPeso;
+                matrizPesosOriginal[nodob][nodoa] = nuevoPeso; //                 
+                System.out.println(" Segmento " + nombreA + " " + nombreB + " actualizado a " + nuevoPeso);
+            }
+        }
+        System.out.println(" Recalculando todas las rutas");
+        resetearMatricesParaFloyd();
         ejecutarFloydWarshall();
+        System.out.println(" completado");
+
     
     }
     public String[] getNombresNodos() {
@@ -279,12 +306,11 @@ public class GrafoHospital {
         return new RutaInfo(distancias[u][v], nodosRuta, true);
     }
     
-    //se usa para borrar los datos antiguos de la matriz distancias y copia los nuevos calculos hechos en matriz adyacencia original
-    //a distancias, y reinicia la matriz de siguientes
+    //se usa para borrar los datos antiguos de la matriz distancias y copia los nuevos calculos hechos en matriz adyacencia originalmatriz pesos con el mecanismo
     private void resetearMatricesParaFloyd() {
         for (int i = 0; i < numVertices; i++) {
             for (int j = 0; j < numVertices; j++) {
-                distancias[i][j] = matrizPesosOriginal[i][j]; //copia el peso del grafo orginal
+                distancias[i][j] = matrizPesosOriginal[i][j]; //copia el peso del grafo matriz con la edicion
 
                 // reconstruye la matriz siguientes
                 if (i == j) {
@@ -316,7 +342,7 @@ public class GrafoHospital {
         }
     }
     
-    // para la terminal
+    // para la terminal, si se usa
     public void imprimirRuta(String origen, String destino) {
         int u = buscarIndice(origen);
         int v = buscarIndice(destino);
@@ -339,10 +365,10 @@ public class GrafoHospital {
         while (actual != v) {
             actual = siguientes[actual][v];
             if (actual == -1) {
-                System.out.print(" -> [Error de camino]");
+                System.out.print(" Error camino");
                 break;
             }
-            System.out.print(" -> " + nombresNodos[actual]);
+            System.out.print("-> " + nombresNodos[actual]);
         }
         System.out.println("\n");
         
