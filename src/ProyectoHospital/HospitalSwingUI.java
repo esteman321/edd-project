@@ -16,11 +16,9 @@ import javax.swing.*;
 
 //
 // esta es la clase principal que crea la ventana
-// hereda de jframe, que es la ventana de swing
 //
 public class HospitalSwingUI extends JFrame {
 
-    // variables (componentes) que usaremos en toda la clase
     private PlanoPanel planoPanel; // el panel que dibuja el mapa (la imagen)
     private JTextArea areaResultados; // el cajon de texto de abajo para mostrar la ruta
     private GrafoHospital grafoOriginal; // una copia del grafo sin tocar, para comparar
@@ -30,7 +28,7 @@ public class HospitalSwingUI extends JFrame {
     private Map<String, Point> mapaCoordenadas = new HashMap<>(); // guarda las coordenadas (x,y) para el plano
     private GrafoAbstractoPanel panelGrafoAbstracto; // el panel que dibuja el grafo de bolitas
     private Map<String, Point> coordsAbstractas = new HashMap<>(); // guarda las coordenadas (x,y) para el grafo abstracto
-    private javax.swing.Timer timerAnimacion; // el 'reloj' para animar la ruta en el grafo
+    private javax.swing.Timer timerAnimacion; // el anima ruta
     private ArrayList<String> rutaParaAnimar; // la lista de pasos que se va a animar
     private int indiceAnimacion; // contador para saber en que paso de la animacion vamos
     
@@ -40,7 +38,7 @@ public class HospitalSwingUI extends JFrame {
 
     
     // este metodo llena el mapa de coordenadas para el panel del plano (la imagen)
-    // cada 'point' es una coordenada (x, y) en la imagen
+    // cada puntoes una coordenada (x, y) en la imagen
     private void inicializarCoordenadas() {
         mapaCoordenadas.put("Entrada Principal", new Point(870, 450));
         mapaCoordenadas.put("Recepcion", new Point(541, 264)); 
@@ -88,7 +86,7 @@ public class HospitalSwingUI extends JFrame {
         mapaCoordenadas.put("SubPasillo 2", new Point(405, 472));
     }
 
-    // este metodo llena el mapa de coordenadas para el panel del grafo abstracto (las bolitas)
+    // este metodo llena el mapa de coordenadas para el panel del grafo abstracto
     private void inicializarCoordenadasAbstractas() { //en el grafo
         coordsAbstractas.put("Entrada Principal", new Point(105, 905));
         coordsAbstractas.put("Pasillo 1", new Point(310, 520));
@@ -137,7 +135,6 @@ public class HospitalSwingUI extends JFrame {
     }
 
     // este es el constructor de la ventana
-    // aqui se arma toda la interfaz
     public HospitalSwingUI() {
         // creamos el grafo original (la copia de seguridad)
         grafoOriginal = new GrafoHospital();
@@ -186,7 +183,7 @@ public class HospitalSwingUI extends JFrame {
         configurarTimer(); // preparamos el 'reloj' para la animacion
     }
 
-    // este metodo configura el 'reloj' (timer)
+    // este metodo configura el timer
     private void configurarTimer() { //timer del grafo
         // crea un timer que se dispara cada 1000 milisegundos (1 segundo)
         timerAnimacion = new javax.swing.Timer(1000, new ActionListener() {
@@ -197,7 +194,7 @@ public class HospitalSwingUI extends JFrame {
                 // si el contador de animacion ya supero el tamaño de la ruta
                 if (indiceAnimacion >= rutaParaAnimar.size()) {
                     timerAnimacion.stop(); // paramos el reloj
-                    return; // nos salimos
+                    return;
                 }
                 
                 // creamos una lista "parcial" con los pasos de la animacion que van hasta ahora
@@ -246,25 +243,21 @@ public class HospitalSwingUI extends JFrame {
         panel.add(new JLabel("Lugar B:"));
         JTextField txtLugarB = new JTextField();
         panel.add(txtLugarB);
-        JButton btnAglomeracion = new JButton("3. Reportar Aglomeración (x2)");
+        JButton btnAglomeracion = new JButton("3. Reportar Aglomeracion (x2)");
         panel.add(btnAglomeracion);
         JButton btnEmergencia = new JButton("4. Reportar Emergencia (x0.5)");
         panel.add(btnEmergencia);
-        JButton btnBloquearSalas = new JButton("5. Bloquear salas aleatorias");
-        panel.add(btnBloquearSalas);
-        JButton btnHoraLoca = new JButton("6. Locura en hospital");
-        panel.add(btnHoraLoca);
+        JButton btnColapsoHospital = new JButton("6. Colapso en el hospital(Pesos aleatorios), primero ingrese su origen y destino en los campos de arriba(de origen y destino) para calcular la ruta");
+        panel.add(btnColapsoHospital);
 
         // reset
         panel.add(new JSeparator());
         JButton btnReset = new JButton("Resetear Grafo al Original");
         panel.add(btnReset);
-
-        // ---- aqui ponemos las acciones de los botones ----
         
         // accion del boton "buscar ruta"
         btnBuscar.addActionListener(e -> {
-            // llama al metodo principal. 'false' significa que no muestre la comparacion
+            // llama al metodo principal.
             mostrarRuta(txtOrigen.getText(), txtDestino.getText(), false);
         });
 
@@ -281,113 +274,96 @@ public class HospitalSwingUI extends JFrame {
 
         // accion del boton "reportar aglomeracion"
         btnAglomeracion.addActionListener(e -> {
-            // 1. aplica el cambio en el grafo 'actual', multiplicando el peso por 2.0
+            // aplica el cambio al grafo actual
             grafoActual.actualizarPeso(txtLugarA.getText(), txtLugarB.getText(), 2.0);
             
-            panelGrafoAbstracto.repaint(); // le decimos al panel del grafo que se redibuje (para mostrar el peso nuevo)
+            panelGrafoAbstracto.repaint(); 
             
-            // 2. revisa si habia una ruta guardada en memoria
+            //  revisa si habia una ruta guardada en memoria
             if (!ultimoOrigenExitoso.isEmpty() && !ultimoDestinoExitoso.isEmpty()) {
                 // si habia una, la recalculamos
-                areaResultados.append("\n\n>> Aglomeración reportada. Recalculando ruta... <<\n");
+                areaResultados.append("\n\n Aglomeración reportada. \n");
                 
-                // volvemos a poner la ruta vieja en los campos de texto
                 txtOrigen.setText(ultimoOrigenExitoso);
                 txtDestino.setText(ultimoDestinoExitoso);
                 
-                // 3. llamamos a mostrar ruta, 'true' significa que si muestre la comparacion
                 mostrarRuta(ultimoOrigenExitoso, ultimoDestinoExitoso, true); // true = sí comparar
             } else {
                 // si no habia ruta en memoria, solo avisamos que el grafo cambio
-                areaResultados.setText(">> Aglomeración reportada. El grafo está modificado. <<");
+                areaResultados.setText("Aglomeración reportada. Mostrando ruta afectada:\n");
+                txtOrigen.setText(txtLugarA.getText());
+                txtDestino.setText(txtLugarB.getText());
+                
+                mostrarRuta(txtLugarA.getText(), txtLugarB.getText(), false);
             }
         });
         
         // accion del boton "reportar emergencia"
         btnEmergencia.addActionListener(e -> {
-            // 1. aplica el cambio en el grafo 'actual', multiplicando por 0.5 (mas rapido)
+            // aplica el cambio en el grafo 'actual', multiplicando por 0.5 (mas rapido)
             grafoActual.actualizarPeso(txtLugarA.getText(), txtLugarB.getText(), 0.5);
             panelGrafoAbstracto.repaint(); // redibuja el grafo
             
-            // 2. revisa si hay ruta en memoria
+            //revisa si hay ruta en memoria
             if (!ultimoOrigenExitoso.isEmpty() && !ultimoDestinoExitoso.isEmpty()) {
-                areaResultados.append("\n\n>> Emergencia reportada. Recalculando ruta... <<\n");
+                areaResultados.append("\n\nEmergencia reportada. Recalculando ruta\n");
                 txtOrigen.setText(ultimoOrigenExitoso);
                 txtDestino.setText(ultimoDestinoExitoso);
-                // 3. recalcula y compara
+                // recalcula y compara
                 mostrarRuta(ultimoOrigenExitoso, ultimoDestinoExitoso, true);
             } else {
-                areaResultados.setText(">> Emergencia reportada. El grafo está modificado. <<");
+                txtOrigen.setText(txtLugarA.getText());
+                txtDestino.setText(txtLugarB.getText());
+                
+                mostrarRuta(txtLugarA.getText(), txtLugarB.getText(), false);
             }
         });
 
-        // accion del boton "bloquear salas"
-        btnBloquearSalas.addActionListener(e -> {
-            // 1. llama al metodo del grafo que bloquea 3 salas al azar
-            ArrayList<String> nodosBloqueados = grafoActual.simularBloqueoSalas(3);
-            panelGrafoAbstracto.repaint(); // redibuja el grafo (se veran lineas rojas)
-            
-            // 2. muestra una ventana emergente (popup) avisando cuales se bloquearon
-            JOptionPane.showMessageDialog(this,
-                    "Salas Bloqueadas:\n" + String.join("\n", nodosBloqueados),
-                    "Simulación: Bloqueo",
-                    JOptionPane.ERROR_MESSAGE);
-            
-            // 3. revisa si hay ruta en memoria para recalcular
-            if (!ultimoOrigenExitoso.isEmpty() && !ultimoDestinoExitoso.isEmpty()) {
-                areaResultados.append("\n\n Salas bloqueadas. Recalculando ruta\n");
-                txtOrigen.setText(ultimoOrigenExitoso);
-                txtDestino.setText(ultimoDestinoExitoso);
-                mostrarRuta(ultimoOrigenExitoso, ultimoDestinoExitoso, true); 
-            } else {
-                areaResultados.setText(">> Salas bloqueadas. El grafo está modificado. <<");
-            }
-        });
+       
 
         // accion del boton "locura en hospital"
-        btnHoraLoca.addActionListener(e -> {
-            // 1. llama al metodo que pone pesos aleatorios (entre 1 y 50)
+        btnColapsoHospital.addActionListener(e -> {
+            // llama al metodo que pone pesos aleatorios
             grafoActual.simularPesosAleatorios(50); 
-            panelGrafoAbstracto.repaint(); // redibuja el grafo
+            panelGrafoAbstracto.repaint();
             
-            // 2. muestra un popup
             JOptionPane.showMessageDialog(this,
                     "Pesos aleatorios aplicados",
                     "Simulacion: caos en el hospital",
                     JOptionPane.INFORMATION_MESSAGE);
             
-            // 3. revisa si hay ruta en memoria y recalcula
             if (!ultimoOrigenExitoso.isEmpty() && !ultimoDestinoExitoso.isEmpty()) {
-                areaResultados.append("\n\n ¡Locura en el hospital! Recalculando ruta... \n");
+                areaResultados.append("\n\nColapso en el hopspital!\n");
                 txtOrigen.setText(ultimoOrigenExitoso);
                 txtDestino.setText(ultimoDestinoExitoso);
                 mostrarRuta(ultimoOrigenExitoso, ultimoDestinoExitoso, true);
             } else {
-                areaResultados.setText("¡Hora Loca! El grafo está modificado.");
+                txtOrigen.setText(txtLugarA.getText());
+                txtDestino.setText(txtLugarB.getText());
+                
+                mostrarRuta(txtLugarA.getText(), txtLugarB.getText(), false);
             }
         });
         
         // accion del boton "resetear grafo"
         btnReset.addActionListener(e -> {
-            // 1. vuelve a cargar los datos originales en el grafo 'actual'
+            // vuelve a cargar los datos originales en el grafo 'actual'
             DatosHospital.cargarMapa(grafoActual);
-            // 2. recalcula todas las rutas desde cero
+            // va a recalcular todas las rutas desde cero
             grafoActual.ejecutarFloydWarshall();
-            
-            // 3. limpia la interfaz grafica
-            areaResultados.setText(">> GRAFO RESTAURADO AL ESTADO ORIGINAL <<");
+ 
+            areaResultados.setText("GRAFO RESTAURADO AL ESTADO ORIGINAL");
             planoPanel.limpiarRuta(); // borra el dibujo del plano
             panelGrafoAbstracto.limpiarRuta(); // borra el dibujo del grafo
-            panelGrafoAbstracto.repaint(); // redibuja el grafo (ahora limpio)
-            
-            // 4. borra la ruta de la memoria
+            panelGrafoAbstracto.repaint(); 
+
             ultimoOrigenExitoso = "";
             ultimoDestinoExitoso = "";
             txtOrigen.setText("");
             txtDestino.setText("");
         });
 
-        return panel; // devuelve el panel del menu ya listo
+        return panel; 
     } 
 
     // este es el metodo principal que busca la ruta y la muestra en todos lados
@@ -398,7 +374,7 @@ public class HospitalSwingUI extends JFrame {
             timerAnimacion.stop();
         }
 
-        // validacion: si el origen o destino estan vacios, muestra error
+        // si el origen o destino estan vacios, muestra error
         if (origen.isEmpty() || destino.isEmpty()) {
             if (mostrarComparacion) {
                 // si estabamos comparando, añade el error al texto existente
@@ -412,13 +388,13 @@ public class HospitalSwingUI extends JFrame {
             return; // no sigas
         }
 
-        // 1. le pedimos al grafo 'actual' que calcule la ruta
+        //le pedimos al grafo actual que calcule la ruta
         RutaInfo rutaActual = grafoActual.obtenerRuta(origen, destino);
 
 
-        // 2. revisamos si hay que mostrar la comparacion
+        // revisamos si hay que mostrar la comparacion
         if (mostrarComparacion) {
-            // si es 'true', buscamos la misma ruta pero en el grafo 'original' (el backup)
+            // si es true, buscamos la misma ruta pero en el grafo original
             RutaInfo rutaOriginal = grafoOriginal.obtenerRuta(origen, destino);
 
             areaResultados.append("RUTA NORMAL (ORIGINAL)\n"); // añade este titulo
@@ -426,22 +402,22 @@ public class HospitalSwingUI extends JFrame {
                 areaResultados.append("Ruta no encontrada.\n");
             } else {
                 // imprime los datos de la ruta original
-                areaResultados.append("Tiempo: " + rutaOriginal.distanciaTotal + " seg.\n");
-                areaResultados.append("Recorrido: " + String.join(" -> ",rutaOriginal.nodos) + "\n");
+                areaResultados.append("Tiempo: " + rutaOriginal.distanciaTotal + " seg\n");
+                areaResultados.append("Recorrido: " + String.join(" ",rutaOriginal.nodos) + "\n");
             }
 
             areaResultados.append("\nNUEVA RUTA (ACTUALIZADA)\n"); // añade el titulo para la ruta nueva
 
         } else {
-            // si es 'false' (busqueda normal), limpiamos el area de texto
+            // si es false (busqueda normal)
             areaResultados.setText(""); 
-            areaResultados.append("--- RUTA CALCULADA ---\n");
+            areaResultados.append("RUTA CALCULADA\n");
         }
 
-        // 3. mostramos el resultado de la ruta 'actual'
+        // mostramos el resultado de la ruta actual
         if (!rutaActual.existe) {
             // si el grafo dice que no existe (porque esta bloqueada)
-            areaResultados.append("Ruta no encontrada (¡Bloqueada!).\n");
+            areaResultados.append("Ruta no encontrada (Bloqueada!).\n");
             planoPanel.limpiarRuta();
             panelGrafoAbstracto.limpiarRuta();
             
@@ -453,26 +429,25 @@ public class HospitalSwingUI extends JFrame {
             // si la ruta si existe
             // la imprimimos en el area de texto
             areaResultados.append("Tiempo: " + rutaActual.distanciaTotal + " seg.\n");
-            areaResultados.append("Recorrido: " + String.join(" -> ", rutaActual.nodos) + "\n");
+            areaResultados.append("Recorrido: " + String.join("  ", rutaActual.nodos) + "\n");
 
-            // 4. la mandamos a dibujar al panel del plano (la imagen)
+            //se dibuja en el panel
             planoPanel.setRuta(rutaActual.nodos);
 
-            // 5. preparamos la animacion para el panel del grafo (las bolitas)
+            // animacion
             rutaParaAnimar = rutaActual.nodos; // le damos la lista de pasos
             indiceAnimacion = 0; // reiniciamos el contador de la animacion
             panelGrafoAbstracto.limpiarRuta(); // limpiamos el dibujo anterior
             timerAnimacion.start(); // !empezamos la animacion!
             
-            // 6. guardamos esta ruta en la 'memoria' por si hay que recalcular
+            // se guarda en la memoria
             ultimoOrigenExitoso = origen;
             ultimoDestinoExitoso = destino;
         }
     }
     
-    // este es el metodo que arranca toda la aplicacion
+    // mainnn
     public static void main(String[] args) {
-        // 'invokelater' es la forma segura de iniciar una interfaz grafica en swing
         SwingUtilities.invokeLater(() -> {
             HospitalSwingUI gui = new HospitalSwingUI(); // crea nuestra ventana
             gui.setVisible(true); // la hace visible
