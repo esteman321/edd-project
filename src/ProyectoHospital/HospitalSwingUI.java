@@ -247,7 +247,7 @@ public class HospitalSwingUI extends JFrame {
         panel.add(btnAglomeracion);
         JButton btnEmergencia = new JButton("4. Reportar Emergencia (x0.5)");
         panel.add(btnEmergencia);
-        JButton btnColapsoHospital = new JButton("6. Colapso en el hospital(Pesos aleatorios), primero ingrese su origen y destino en los campos de arriba(de origen y destino) para calcular la ruta");
+        JButton btnColapsoHospital = new JButton("5. Colapso en el hospital(Pesos aleatorios), primero ingrese su origen y destino en los campos de arriba(de origen y destino) para calcular la ruta");
         panel.add(btnColapsoHospital);
 
         // reset
