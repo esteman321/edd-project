@@ -1,5 +1,9 @@
-package pruebaproyectofinal;
+package ProyectoHospital;
 
+import InfoHospital.DatosHospital;
+import InfoUI.RutaInfo;
+import InfoUI.PlanoPanel;
+import InfoUI.GrafoAbstractoPanel;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.Point; // importante: usa java.awt.point
@@ -279,6 +283,7 @@ public class HospitalSwingUI extends JFrame {
         btnAglomeracion.addActionListener(e -> {
             // 1. aplica el cambio en el grafo 'actual', multiplicando el peso por 2.0
             grafoActual.actualizarPeso(txtLugarA.getText(), txtLugarB.getText(), 2.0);
+            
             panelGrafoAbstracto.repaint(); // le decimos al panel del grafo que se redibuje (para mostrar el peso nuevo)
             
             // 2. revisa si habia una ruta guardada en memoria

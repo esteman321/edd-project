@@ -1,213 +1,27 @@
-package pruebaproyectofinal;
 
-import java.util.ArrayList; //nuevas importanciones
+package ProyectoHospital;
+
+import InfoHospital.DatosHospital;
+import InfoUI.RutaInfo;
+import java.util.ArrayList;
 import java.util.Random;
-import java.util.Scanner;
-
-public class HospitalApp {
-
-    //valor q representa no conexion entre vertices
-    static int INF = 999999;
-
-    public static void main(String[] args) {
-        GrafoHospital hospital = new GrafoHospital();
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.println("Cargando mapa del hospital...");
-        
-        //cargar plano y grafo
-        DatosHospital.cargarMapa(hospital); 
-
-        //calcular rutas iniciales
-        hospital.ejecutarFloydWarshall();
-
-        int opcion = 0;
-        while (opcion != 5) { //menú con el q hice la prueba
-            System.out.println("Bienvenido, ingrese una opcion");
-            System.out.println("========================================");
-            System.out.println("1. Consultar Ruta General (Origen -> Destino)");
-            System.out.println("2. ¿A Donde voy? (Desde Recepcion -> Destino)");
-            System.out.println("3. Reportar AGLOMERACION (Aumenta tiempo)"); //algunos eventos pa lo q pide la profe
-            System.out.println("4. Reportar EMERGENCIA (Disminuye tiempo)");
-            System.out.println("5. Salir");
-            System.out.print(">> Seleccione opción: ");
-            
-            try {
-                String input = scanner.nextLine();
-                opcion = Integer.parseInt(input);
-            } catch (NumberFormatException e) {//validacion datos incorrectos
-                continue;
-            }
-
-            switch (opcion) {
-                case 1: //ruta cualquiera
-                    System.out.print("Ingrese Origen: ");
-                    String origen = scanner.nextLine();
-                    System.out.print("Ingrese Destino: ");
-                    String destino = scanner.nextLine();
-                    hospital.imprimirRuta(origen, destino);
-                    break;
-
-                case 2: //desde ingreso
-                    System.out.println("Usted esta aqui: Recepcion");
-                    System.out.print("Ingrese Destino (Ej. Laboratorio): ");
-                    String destinoR = scanner.nextLine();
-                    //se parte desde info.
-                    hospital.imprimirRuta("Recepcion", destinoR);
-                    break;
-
-                case 3: // Aglomeracion
-                    System.out.println("[REPORTAR OBSTACULO]");
-                    System.out.print("Lugar A: ");
-                    String obsA = scanner.nextLine();
-                    System.out.print("Lugar B: ");
-                    String obsB = scanner.nextLine();
-                    hospital.actualizarPeso(obsA, obsB, 2.0); 
-                    break;
-
-                case 4: // Emergencia
-                    System.out.println("[CODIGO AZUL / PRIORIDAD]");
-                    System.out.print("Lugar A: ");
-                    String prioA = scanner.nextLine();
-                    System.out.print("Lugar B: ");
-                    String prioB = scanner.nextLine();
-                    hospital.actualizarPeso(prioA, prioB, 0.5);
-                    break;
-                
-                case 5:
-                    System.out.println("Cerrando sistema...");
-                    break;
-                    
-                default:
-                    System.out.println("Opcion no valida.");
-            }
-        }
-        scanner.close();
-    }
-}
-
-//plano y grafo
-class DatosHospital {
-    public static void cargarMapa(GrafoHospital g) {
-        //lugares
-        g.limpiar();
-        String[] lugares = {
-            "Entrada Principal", "Pasillo 1", "Recepcion", "Farmacia", "Auditorio", 
-            "Sala de Espera",
-            "Pasillo 3", "Consultorio 12", "Pasillo 2", "Pasillo 4",
-            "Imagenologia", "Urgencias", "SubPasillo 1", 
-            "Emergencias Ped.", "Sala Emergencias", "Enfermeria 1",
-            "SubPasillo 3", "Salas Descanso", "Almacen", "Anatomia Patologica", "Consultorio 11",
-            "Vestidor H", "Vestidor M", "Lavanderia", 
-            "Estacion Servicio Cocina", "Cocina", "Comedor",
-            "Banos", "Enfermeria 2", "PYP", 
-            "SubPasillo 4", "Consultorio 5", "Consultorio 4", 
-            "Consultorio 3", "Consultorio 2", "Consultorio 1",
-            "Laboratorio", "Consulta Externa",
-            "Trabajo Social", "Consultorio 8", "SubPasillo 2",
-            "Consultorio 7", "Consultorio 9", "Consultorio 10"
-        };
-
-        for (String lugar : lugares) {
-            g.agregarNodo(lugar);
-        }
-
-        //aristas y pesos
-        //Formato: origen, destino, peso
-        
-        g.agregarArista("Entrada Principal", "Pasillo 1", 10);
-        g.agregarArista("Pasillo 1", "Recepcion", 15);
-        g.agregarArista("Pasillo 1", "Farmacia", 8);
-        g.agregarArista("Pasillo 1", "Auditorio", 8);
-        g.agregarArista("Pasillo 1", "Pasillo 2", 21);
-        g.agregarArista("Pasillo 1", "Pasillo 3", 21);
-        
-        g.agregarArista("Pasillo 3", "Consultorio 12", 7);
-        g.agregarArista("Pasillo 3", "Sala de Espera", 9);
-        g.agregarArista("Sala de Espera", "Recepcion", 5);
-        g.agregarArista("Pasillo 3", "SubPasillo 2", 9);
-        g.agregarArista("Pasillo 3", "Pasillo 4", 10);
-        
-        g.agregarArista("Pasillo 2", "Imagenologia", 10);
-        g.agregarArista("Pasillo 2", "Consultorio 11", 12);
-        g.agregarArista("Pasillo 2", "Anatomia Patologica", 12);
-        g.agregarArista("Pasillo 2", "SubPasillo 1", 6);
-        g.agregarArista("Pasillo 2", "SubPasillo 3", 10);
-        
-        g.agregarArista("SubPasillo 1", "Emergencias Ped.", 4);
-        g.agregarArista("SubPasillo 1", "Sala Emergencias", 6);
-        g.agregarArista("SubPasillo 1", "Enfermeria 1", 9);
-        g.agregarArista("Sala Emergencias", "Enfermeria 1", 2);
-        g.agregarArista("SubPasillo 1", "Urgencias", 8);
-        g.agregarArista("Urgencias", "Imagenologia", 3);
-
-        g.agregarArista("SubPasillo 3", "Almacen", 7);
-        g.agregarArista("SubPasillo 3", "Salas Descanso", 8);
-        g.agregarArista("SubPasillo 3", "Vestidor M", 8);
-        g.agregarArista("SubPasillo 3", "Vestidor H", 9);
-        g.agregarArista("Vestidor H", "Lavanderia", 3);
-        g.agregarArista("Vestidor M", "Lavanderia", 3);
-        g.agregarArista("SubPasillo 3", "Lavanderia", 10);
-        g.agregarArista("SubPasillo 3", "Estacion Servicio Cocina", 9);
-        g.agregarArista("Estacion Servicio Cocina", "Cocina", 4);
-        g.agregarArista("Cocina", "Comedor", 3);
-        g.agregarArista("SubPasillo 3", "Comedor", 8);
-        
-
-        g.agregarArista("Pasillo 4", "SubPasillo 3", 6);
-        g.agregarArista("Pasillo 4", "Banos", 5);
-        g.agregarArista("Pasillo 4", "SubPasillo 4", 6);
-        g.agregarArista("Pasillo 4", "Comedor", 5);
-        g.agregarArista("Pasillo 4", "PYP", 5);
-        g.agregarArista("PYP", "Enfermeria 2", 3);
-        
-        g.agregarArista("Enfermeria 2", "SubPasillo 4", 4);
-        
-        g.agregarArista("Pasillo 4", "Consulta Externa", 9);
-        g.agregarArista("Pasillo 4", "Trabajo Social", 7);
-        g.agregarArista("Trabajo Social", "Consultorio 8", 3);
-        g.agregarArista("Consultorio 8", "SubPasillo 2", 5);
-        
-        
-        g.agregarArista("SubPasillo 4", "Consultorio 5", 8);
-        g.agregarArista("SubPasillo 4", "Consultorio 4", 7);
-        g.agregarArista("SubPasillo 4", "Consultorio 3", 7);
-        g.agregarArista("SubPasillo 4", "Consultorio 2", 7);
-        g.agregarArista("SubPasillo 4", "Consultorio 1", 8);
-        g.agregarArista("Consultorio 1", "Consultorio 2", 2);
-        g.agregarArista("Consultorio 2", "Consultorio 3", 2);
-        g.agregarArista("Consultorio 3", "Consultorio 4", 2);
-        g.agregarArista("Consultorio 4", "Consultorio 5", 2);
-        g.agregarArista("SubPasillo 4", "Cocina", 6);
-        g.agregarArista("SubPasillo 4", "Laboratorio", 6);
-        g.agregarArista("Laboratorio", "Consulta Externa", 4);
-        g.agregarArista("Consulta Externa", "Consultorio 8", 7);
-
-        
-        
-        g.agregarArista("SubPasillo 2", "Consultorio 7", 4);
-        g.agregarArista("SubPasillo 2", "Consultorio 9", 4);
-        g.agregarArista("SubPasillo 2", "Consultorio 10", 5);
 
 
-        System.out.println(">> Datos cargados: " + lugares.length + " lugares conectados.");
-    }
-}
-
-class GrafoHospital {
+public class GrafoHospital {
+   
     private String[] nombresNodos; //arreglo simple de nombres
     private int[][] distancias;    //matriz de pesos que usa floyd warchall, guarda los peso de la ruta mas corta total
     private int[][] siguientes;    //matriz para reconstruir camino, con los caminos, hecho con nodos
     private int numVertices;
-    private final int MAX_V = 45;  //capacidad máxima fija para validar
-    private int[][] matrizAdyacenciaOriginal; //es el mapa base, guarda los pesos directos entre lugares
+    private final int MAX_V = 44;  //capacidad máxima fija para validar
+    private int[][] matrizPesosOriginal; //es el mapa base, guarda los pesos directos entre lugares
     private Random random; //para el mecanismo de hora loca
     public GrafoHospital() {
         nombresNodos = new String[MAX_V];
         distancias = new int[MAX_V][MAX_V];
         siguientes = new int[MAX_V][MAX_V];
         numVertices = 0;
-        matrizAdyacenciaOriginal = new int [MAX_V][MAX_V];
+        matrizPesosOriginal = new int [MAX_V][MAX_V];
         
         //añadidio a
         random = new Random();
@@ -216,11 +30,11 @@ class GrafoHospital {
             for (int j = 0; j < MAX_V; j++) {
                 if (i == j) {
                     distancias[i][j] = 0;
-                    matrizAdyacenciaOriginal[i][j] = 0; //por a
+                    matrizPesosOriginal[i][j] = 0; //por a
                 }
                 else {
                     distancias[i][j] = HospitalApp.INF;
-                    matrizAdyacenciaOriginal[i][j] = HospitalApp.INF; //por a
+                    matrizPesosOriginal[i][j] = HospitalApp.INF; //por a
                 }
                 
                 siguientes[i][j] = -1; 
@@ -259,8 +73,8 @@ class GrafoHospital {
             distancias[j][i] = peso;
             siguientes[i][j] = j;
             siguientes[j][i] = i;
-            matrizAdyacenciaOriginal[i][j] = peso; //se guarda en la copia
-            matrizAdyacenciaOriginal[j][i] = peso; //se guarda en al copia
+            matrizPesosOriginal[i][j] = peso; //se guarda en la copia
+            matrizPesosOriginal[j][i] = peso; //se guarda en al copia
         } else {
             System.out.println("Advertencia: No se pudo conectar " + u + " con " + v + " (Nombre incorrecto)");
         }
@@ -301,10 +115,10 @@ class GrafoHospital {
             
             // bloquea todas las conexiones con la sala
             for (int j = 0; j < numVertices; j++) {
-                if (idx != j && matrizAdyacenciaOriginal[idx][j] != HospitalApp.INF) {
+                if (idx != j && matrizPesosOriginal[idx][j] != HospitalApp.INF) {
                     // modifica la matriz del grafi original
-                    matrizAdyacenciaOriginal[idx][j] = HospitalApp.INF;
-                    matrizAdyacenciaOriginal[j][idx] = HospitalApp.INF;
+                    matrizPesosOriginal[idx][j] = HospitalApp.INF;
+                    matrizPesosOriginal[j][idx] = HospitalApp.INF;
                 }
             }
         }
@@ -327,10 +141,10 @@ class GrafoHospital {
         for (int i = 0; i < numVertices; i++) {
             for (int j = i + 1; j < numVertices; j++) {
                 // Si la arista existía
-                if (matrizAdyacenciaOriginal[i][j] != 0 && matrizAdyacenciaOriginal[i][j] != HospitalApp.INF) {
+                if (matrizPesosOriginal[i][j] != 0 && matrizPesosOriginal[i][j] != HospitalApp.INF) {
                     int nuevoPeso = random.nextInt(maxPeso) + 1; // aplica un peso aleatorio entre max
-                    matrizAdyacenciaOriginal[i][j] = nuevoPeso;
-                    matrizAdyacenciaOriginal[j][i] = nuevoPeso;
+                    matrizPesosOriginal[i][j] = nuevoPeso;
+                    matrizPesosOriginal[j][i] = nuevoPeso;
                 }
             }
         }
@@ -383,8 +197,8 @@ class GrafoHospital {
             return;
         }
 
-        //usa la maatriz original para ver si hay conexion entres esos puntos, verifica si el camnio existe en el mapa orginal
-        if (matrizAdyacenciaOriginal[i][j] == HospitalApp.INF) {
+        //usa la matriz original para ver si hay conexion entres esos puntos, verifica si el camnio existe en el mapa orginal
+        if (matrizPesosOriginal[i][j] == HospitalApp.INF) {
             System.out.println("No hay conexión directa física entre estos puntos.");
             return;
         }
@@ -395,7 +209,7 @@ class GrafoHospital {
             nuevoPeso = HospitalApp.INF;
         } else {
             //saca el peso del mapa original y lo multiplica
-            nuevoPeso = (int) (matrizAdyacenciaOriginal[i][j] * factor); //mira la matriz original
+            nuevoPeso = (int) (matrizPesosOriginal[i][j] * factor); //mira la matriz original
         }
 
         if (nuevoPeso <= 0 && nuevoPeso != HospitalApp.INF){
@@ -403,8 +217,8 @@ class GrafoHospital {
         }
 
         // modifica la matriz de adyacencia original
-        matrizAdyacenciaOriginal[i][j] = nuevoPeso;
-        matrizAdyacenciaOriginal[j][i] = nuevoPeso;
+        matrizPesosOriginal[i][j] = nuevoPeso;
+        matrizPesosOriginal[j][i] = nuevoPeso;
         
         System.out.println(">> Peso (Original) actualizado: " + u + " <-> " + v + " = " + nuevoPeso + " seg.");
         System.out.println(">> Recalculando todas las rutas...");
@@ -426,7 +240,7 @@ class GrafoHospital {
         return numVertices;
     }
     public int[][] getMatrizAdyacenciaOriginal() { //devuelve la matriz original para la interfaz
-        return matrizAdyacenciaOriginal;
+        return matrizPesosOriginal;
     }
     public int getINF() {
         return HospitalApp.INF;
@@ -470,7 +284,7 @@ class GrafoHospital {
     private void resetearMatricesParaFloyd() {
         for (int i = 0; i < numVertices; i++) {
             for (int j = 0; j < numVertices; j++) {
-                distancias[i][j] = matrizAdyacenciaOriginal[i][j]; //copia el peso del grafo orginal
+                distancias[i][j] = matrizPesosOriginal[i][j]; //copia el peso del grafo orginal
 
                 // reconstruye la matriz siguientes
                 if (i == j) {
@@ -492,10 +306,10 @@ class GrafoHospital {
             for (int j = 0; j < MAX_V; j++) {
                 if (i == j) {
                     distancias[i][j] = 0;
-                    matrizAdyacenciaOriginal[i][j] = 0;
+                    matrizPesosOriginal[i][j] = 0;
                 } else {
                     distancias[i][j] = HospitalApp.INF;
-                    matrizAdyacenciaOriginal[i][j] = HospitalApp.INF;
+                    matrizPesosOriginal[i][j] = HospitalApp.INF;
                 }
                 siguientes[i][j] = -1;
             }
@@ -551,4 +365,5 @@ class GrafoHospital {
     }
     System.out.println("\n");
     }
-}
+} 
+

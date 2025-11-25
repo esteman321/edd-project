@@ -1,4 +1,4 @@
-package pruebaproyectofinal;
+package InfoUI;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -12,6 +12,7 @@ import java.awt.Stroke;
 import java.util.ArrayList;
 import java.util.Map;
 import javax.swing.JPanel;
+import ProyectoHospital.GrafoHospital;
 
 public class GrafoAbstractoPanel extends JPanel {
 
