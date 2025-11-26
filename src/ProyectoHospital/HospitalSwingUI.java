@@ -249,8 +249,7 @@ public class HospitalSwingUI extends JFrame {
         panel.add(btnEmergencia);
         JButton btnColapsoHospital = new JButton("5. Colapso en el hospital(Pesos aleatorios)");
         panel.add(btnColapsoHospital);
-        panel.add(new JSeparator());
-        panel.add(new JLabel("7. Bloquear Nodos (separados por coma):"));
+        
         // reset
         panel.add(new JSeparator());
         JButton btnReset = new JButton("Resetear Grafo al Original");

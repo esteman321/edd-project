@@ -16,12 +16,10 @@ public class GrafoHospital {
     private final int MAX_V = 44;  //capacidad máxima fija para validar
     private int[][] matrizPesosOriginal; //es el mapa base, guarda los pesos directos entre lugares
     private Random random; //para el mecanismo de hora loca
-    private int[][] matrizParaBloqueos;
     public GrafoHospital() {
         nombresNodos = new String[MAX_V];
         distancias = new int[MAX_V][MAX_V];
         siguientes = new int[MAX_V][MAX_V];
-        matrizParaBloqueos = new int [MAX_V][MAX_V];
         numVertices = 0;
         matrizPesosOriginal = new int [MAX_V][MAX_V];
         
@@ -33,12 +31,10 @@ public class GrafoHospital {
                 if (i == j) {
                     distancias[i][j] = 0;
                     matrizPesosOriginal[i][j] = 0; //por a
-                    matrizParaBloqueos[i][j] = 0;
                 }
                 else {
                     distancias[i][j] = HospitalApp.INF;
                     matrizPesosOriginal[i][j] = HospitalApp.INF; //por a
-                    matrizParaBloqueos[i][j] = HospitalApp.INF;
                 }
                 
                 siguientes[i][j] = -1; 
@@ -79,8 +75,6 @@ public class GrafoHospital {
             siguientes[j][i] = i;
             matrizPesosOriginal[i][j] = peso; //se guarda en la copia
             matrizPesosOriginal[j][i] = peso; //se guarda en al copia
-            matrizParaBloqueos[i][j] = peso;
-            matrizParaBloqueos[j][i] = peso;
         } else {
             System.out.println("Advertencia: No se pudo conectar " + u + " con " + v + " (Nombre incorrecto)");
         }
@@ -105,45 +99,7 @@ public class GrafoHospital {
         }
     }
 
-    public void marcarNodoComoBloqueado(String nombreNodo) {
-        int id = buscarIndice(nombreNodo);
-        if (id == -1) {
-            System.out.println("Error al marcar bloqueo: Nodo no existe: " + nombreNodo);
-            return;
-        }
 
-        // modifica la matriz de pesos original
-        for (int i = 0; i < numVertices; i++) {
-            matrizPesosOriginal[id][i] = HospitalApp.INF;
-            matrizPesosOriginal[i][id] = HospitalApp.INF;
-        }
-        matrizPesosOriginal[id][id] = 0;
-
-        System.out.println("Nodo '" + nombreNodo + "' marcado para bloqueo.");
-    }
-
-    public void desmarcarNodoComoBloqueado(String nombreNodo) {
-        int id = buscarIndice(nombreNodo);
-        if (id == -1) {
-            System.out.println("Error al desmarcar bloqueo: Nodo no existe: " + nombreNodo);
-            return;
-        }
-
-        // restaura las conexiones a partir de la matriz para bloqueos
-        for (int i = 0; i < numVertices; i++) {
-            matrizPesosOriginal[id][i] = matrizParaBloqueos[id][i];
-            matrizPesosOriginal[i][id] = matrizParaBloqueos[i][id];
-        }
-
-        System.out.println("Nodo '" + nombreNodo + "' desmarcado de bloqueo.");
-
-    }
-//ejecuta a lo ultimo floyd
-
-    public void aplicarCambiosYRecalcular() {
-        resetearMatricesParaFloyd();
-        ejecutarFloydWarshall();
-    }
     public void simularPesosAleatorios(int maxPeso) {
         // resetea al grafo original
         DatosHospital.cargarMapa(this);
@@ -376,11 +332,9 @@ public class GrafoHospital {
                 if (i == j) {
                     distancias[i][j] = 0;
                     matrizPesosOriginal[i][j] = 0;
-                    matrizParaBloqueos[i][j] = 0;
                 } else {
                     distancias[i][j] = HospitalApp.INF;
                     matrizPesosOriginal[i][j] = HospitalApp.INF;
-                    matrizParaBloqueos[i][j] = HospitalApp.INF;
                 }
                 siguientes[i][j] = -1;
             }
