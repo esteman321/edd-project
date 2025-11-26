@@ -31,9 +31,7 @@ public class HospitalSwingUI extends JFrame {
     private javax.swing.Timer timerAnimacion; // el anima ruta
     private ArrayList<String> rutaParaAnimar; // la lista de pasos que se va a animar
     private int indiceAnimacion; // contador para saber en que paso de la animacion vamos
-    private JTextField txtNodosBloquear; //para leer texto
-    private JTextField txtNodosDesbloquear;
-    
+
     // guardamos la ultima ruta exitosa para poder recalcularla
     private String ultimoOrigenExitoso = "";
     private String ultimoDestinoExitoso = "";
@@ -253,21 +251,6 @@ public class HospitalSwingUI extends JFrame {
         panel.add(btnColapsoHospital);
         panel.add(new JSeparator());
         panel.add(new JLabel("7. Bloquear Nodos (separados por coma):"));
-        txtNodosBloquear = new JTextField();
-        panel.add(txtNodosBloquear);
-        JButton btnMarcarBloqueo = new JButton("Marcar Nodos para Bloqueo");
-        panel.add(btnMarcarBloqueo);
-
-        panel.add(new JSeparator());
-        panel.add(new JLabel("8. Desbloquear Nodos (separados por coma):"));
-        txtNodosDesbloquear = new JTextField();
-        panel.add(txtNodosDesbloquear);
-        JButton btnMarcarDesbloqueo = new JButton("Marcar Nodos para Desbloqueo");
-        panel.add(btnMarcarDesbloqueo);
-
-        panel.add(new JSeparator());
-        JButton btnAplicarCambios = new JButton("Aplicar Cambios de bloqueo o desbloqueo de nodos y Recalcular en un grafo ya hecho");
-        panel.add(btnAplicarCambios);
         // reset
         panel.add(new JSeparator());
         JButton btnReset = new JButton("Resetear Grafo al Original");
@@ -362,62 +345,7 @@ public class HospitalSwingUI extends JFrame {
                 mostrarRuta(txtLugarA.getText(), txtLugarB.getText(), false);
             }
         });
-        btnMarcarBloqueo.addActionListener(e -> {
-            String texto = txtNodosBloquear.getText(); //lee el texto
-            if (texto.isEmpty()) {
-                areaResultados.append("\nError: Escriba los nodos a bloquear.");
-                return;
-            }
-
-            String[] nodosAMarcar = texto.split(",");
-            areaResultados.append("\nMarcando nodos para bloqueo:");
-
-            for (String nombre : nodosAMarcar) {
-                String nombreLimpio = nombre.trim(); //quita espacios
-                if (!nombreLimpio.isEmpty()) {
-                    grafoActual.marcarNodoComoBloqueado(nombreLimpio);
-                }
-            }
-
-            areaResultados.append("\nNodos marcados. Presione 'Aplicar' para recalcular.");
-            txtNodosBloquear.setText("");
-        });
-
-        btnMarcarDesbloqueo.addActionListener(e -> {
-            String texto = txtNodosDesbloquear.getText();
-            if (texto.isEmpty()) {
-                areaResultados.append("\nError: Escriba los nodos a desbloquear.");
-                return;
-            }
-
-            String[] nodosAMarcar = texto.split(",");
-            areaResultados.append("\nMarcando nodos para desbloqueo:");
-
-            for (String nombre : nodosAMarcar) {
-                String nombreLimpio = nombre.trim();
-                if (!nombreLimpio.isEmpty()) {
-                    // Llama al método que SOLO desmarca (no recalcula)
-                    grafoActual.desmarcarNodoComoBloqueado(nombreLimpio);
-                }
-            }
-
-            areaResultados.append("\nNodos desmarcados. Presione 'Aplicar' para recalcular.");
-            txtNodosDesbloquear.setText(""); // Limpia el campo de texto
-        });
-
-        btnAplicarCambios.addActionListener(e -> {
-            grafoActual.aplicarCambiosYRecalcular();
-            panelGrafoAbstracto.repaint(); // Redibuja el grafo
-
-            areaResultados.append("\n\nGRAFO ACTUALIZADO Recalculando ruta activa\n");
-
-            if (!ultimoOrigenExitoso.isEmpty() && !ultimoDestinoExitoso.isEmpty()) {
-                //habia alguna ruta anteriormente, comparo
-                mostrarRuta(ultimoOrigenExitoso, ultimoDestinoExitoso, true);
-            } else {
-                areaResultados.append("No había ninguna ruta activa para refrescar.\n");
-            }
-        });
+       
         // accion del boton "resetear grafo"
         btnReset.addActionListener(e -> {
             // vuelve a cargar los datos originales en el grafo 'actual'
