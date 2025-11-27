@@ -281,6 +281,8 @@ public class HospitalSwingUI extends JFrame {
 
         // accion del boton "reportar aglomeracion"
         btnAglomeracion.addActionListener(e -> {
+            DatosHospital.cargarMapa(grafoActual);
+            grafoActual.ejecutarFloydWarshall();
             // aplica el cambio al grafo actual
             grafoActual.actualizarPeso(txtLugarA.getText(), txtLugarB.getText(), 2.0);
             
@@ -307,6 +309,8 @@ public class HospitalSwingUI extends JFrame {
         
         // accion del boton "reportar emergencia"
         btnEmergencia.addActionListener(e -> {
+            DatosHospital.cargarMapa(grafoActual);
+            grafoActual.ejecutarFloydWarshall();
             // aplica el cambio en el grafo 'actual', multiplicando por 0.5 (mas rapido)
             grafoActual.actualizarPeso(txtLugarA.getText(), txtLugarB.getText(), 0.5);
             panelGrafoAbstracto.repaint(); // redibuja el grafo
@@ -447,7 +451,7 @@ public class HospitalSwingUI extends JFrame {
             } else {
                 // imprime los datos de la ruta original
                 areaResultados.append("Tiempo: " + rutaOriginal.distanciaTotal + " seg\n");
-                areaResultados.append("Recorrido: " + String.join(" ",rutaOriginal.nodos) + "\n");
+                areaResultados.append("Recorrido: " + String.join(" -> ",rutaOriginal.nodos) + "\n");
             }
 
             areaResultados.append("\nNUEVA RUTA (ACTUALIZADA)\n"); // añade el titulo para la ruta nueva
