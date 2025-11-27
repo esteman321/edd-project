@@ -122,41 +122,9 @@ public class GrafoHospital {
         resetearMatricesParaFloyd(); 
         ejecutarFloydWarshall();     // calcula
     }
-    //cuando llamo a actualizar peso, no se cambia la matriz de distancias sino la matriz de pesos
-    //entonces llama a resetar matrices y este metodo borra la matriz distancias vieja y la rremplaza con la
-    //matriz con el peso nuevo de la aglomeracion(matriz de adyacencia original)
-    //y ahroa si llama a floyd warshall con la nueva matriz con los pesos afectados por el mecanismo de actualizacion
+    
     public void actualizarPeso(String u, String v, double factor) {
-        /**
-        int i = buscarIndice(u);
-        int j = buscarIndice(v);
-
-        if (i == -1 || j == -1) {
-            System.out.println("Error: Lugar no encontrado.");
-            return;
-        }
-
-        //verificacion de q si hay conexion entre los lugares
-        if (distancias[i][j] == HospitalApp.INF && factor < 100) {
-             System.out.println("No hay conexión directa física entre estos puntos.");
-             return;
-        }
-
-        //se cambia el peso
-        int nuevoPeso = (int) (distancias[i][j] * factor);
-        if (nuevoPeso <= 0){
-            nuevoPeso = 1;
-        }
-
-        distancias[i][j] = nuevoPeso;
-        distancias[j][i] = nuevoPeso;
         
-        System.out.println(">> Peso actualizado: " + u + " <-> " + v + " = " + nuevoPeso + " seg.");
-        System.out.println(">> Recalculando todas las rutas...");
-        
-        ejecutarFloydWarshall(); //se recalcula con floyd warshallll gracias por tanto perdon por poco
-        **/
-        //cambio 
 
         int i = buscarIndice(u);
         int j = buscarIndice(v);
