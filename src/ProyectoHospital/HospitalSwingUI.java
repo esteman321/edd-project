@@ -249,6 +249,13 @@ public class HospitalSwingUI extends JFrame {
         panel.add(btnEmergencia);
         JButton btnColapsoHospital = new JButton("5. Colapso en el hospital(Pesos aleatorios)");
         panel.add(btnColapsoHospital);
+        panel.add(new JSeparator());
+        panel.add(new JLabel("Reportar Sala a Bloquear por Cuarentena"));
+        panel.add(new JLabel("Lugar a Bloquear:"));
+        JTextField txtLugarABloquear = new JTextField();
+        panel.add(txtLugarABloquear);
+        JButton btnBloquearSala = new JButton("6. Bloquear sala por Cuarentena");
+        panel.add(btnBloquearSala);
         
         // reset
         panel.add(new JSeparator());
@@ -344,6 +351,39 @@ public class HospitalSwingUI extends JFrame {
                 mostrarRuta(txtLugarA.getText(), txtLugarB.getText(), false);
             }
         });
+        
+        //
+        btnBloquearSala.addActionListener(e -> {
+            if(txtLugarABloquear.getText().isBlank()){
+                JOptionPane.showMessageDialog(this,
+                    "Para reportar cuarentena, por favor llene el campo con el nombre de la sala a bloquear.",
+                    "Informacion",
+                    JOptionPane.INFORMATION_MESSAGE);
+            }else if(grafoOriginal.buscarIndice(txtLugarABloquear.getText()) == -1){
+                JOptionPane.showMessageDialog(this,
+                    "El lugar ingresado no existe, verifique e ingreselo nuevamente.",
+                    "Informe de Error",
+                    JOptionPane.INFORMATION_MESSAGE);
+            }else{
+                // 1. llama al metodo del grafo que bloquea la sala
+                grafoActual.simularBloqueoSalas(txtLugarABloquear.getText());
+                panelGrafoAbstracto.repaint(); // redibuja el grafo (se veran lineas rojas)
+
+                // 2. revisa si hay ruta en memoria para recalcular
+                if (!ultimoOrigenExitoso.isEmpty() && !ultimoDestinoExitoso.isEmpty()) {
+                    areaResultados.append("\n\n Salas bloqueadas. Recalculando ruta\n");
+                    txtOrigen.setText(ultimoOrigenExitoso);
+                    txtDestino.setText(ultimoDestinoExitoso);
+                    mostrarRuta(ultimoOrigenExitoso, ultimoDestinoExitoso, true); 
+                } else {
+                    areaResultados.setText(">> Sala bloqueadas. El grafo está modificado. <<");
+                }
+            }
+            
+        });
+        
+        
+        
        
         // accion del boton "resetear grafo"
         btnReset.addActionListener(e -> {
@@ -361,6 +401,10 @@ public class HospitalSwingUI extends JFrame {
             ultimoDestinoExitoso = "";
             txtOrigen.setText("");
             txtDestino.setText("");
+            txtLugarABloquear.setText("");
+            txtLugarA.setText("");
+            txtLugarB.setText("");
+            txtDestinoR.setText("");
         });
 
         return panel; 
@@ -429,7 +473,7 @@ public class HospitalSwingUI extends JFrame {
             // si la ruta si existe
             // la imprimimos en el area de texto
             areaResultados.append("Tiempo: " + rutaActual.distanciaTotal + " seg.\n");
-            areaResultados.append("Recorrido: " + String.join("  ", rutaActual.nodos) + "\n");
+            areaResultados.append("Recorrido: " + String.join(" -> ", rutaActual.nodos) + "\n");
 
             //se dibuja en el panel
             planoPanel.setRuta(rutaActual.nodos);

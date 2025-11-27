@@ -43,7 +43,7 @@ public class GrafoHospital {
     }
 
 //busqueda de lugar del hospital
-    private int buscarIndice(String nombre) {
+    public int buscarIndice(String nombre) {
         for (int i = 0; i < numVertices; i++) {
             //validacion de mayus. y minus.
             if (nombresNodos[i].equalsIgnoreCase(nombre.trim())) {
@@ -390,5 +390,26 @@ public class GrafoHospital {
     }
     System.out.println("\n");
     }
+    
+    public void simularBloqueoSalas(String nodoABloquear) {
+
+        // 1. Resetear el grafo al estado original
+        DatosHospital.cargarMapa(this);
+
+        // 2. Bloquea la sala seleccionada
+        int idx = buscarIndice(nodoABloquear);
+        //3. Bloquea todas las conexiones con la sala
+        for (int j = 0; j < numVertices; j++) {
+            if (idx != j && matrizPesosOriginal[idx][j] != HospitalApp.INF) {
+                // 4. Modifica la matriz del grafi original
+                matrizPesosOriginal[idx][j] = HospitalApp.INF;
+                matrizPesosOriginal[j][idx] = HospitalApp.INF;
+            }
+        }
+        // 5. Recalculo algoritmo
+        resetearMatricesParaFloyd(); 
+        ejecutarFloydWarshall();         
+    }
+    
 } 
 
